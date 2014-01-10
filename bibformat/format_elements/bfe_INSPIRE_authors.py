@@ -76,9 +76,11 @@ def format_element(bfo, limit, separator='; ',
     _ = gettext_set_language(bfo.lang)    # load the right message language
 
     #regex for parsing last and first names and initials
-    re_last_first = re.compile('^(?P<last>[^,]+)\s*,\s*(?P<first_names>[^\,]*)(?P<extension>\,?.*)$')
+    re_last_first = re.compile(r'^(?P<last>[^,]+)\s*,\s*(?P<first_names>[^\,]*)(?P<extension>\,?.*)$')
     re_initials = re.compile(r'(?P<initial>\w)(\w+|\.)\s*', re.UNICODE)
     re_coll = re.compile(r'\s*collaborations?', re.IGNORECASE)
+    re_group_or_coll = re.compile(r'(?:collaborations?|groups?)(?:</a>)?$', re.IGNORECASE)
+    re_behalf_of = re.compile(r'(?:\W|^)on behalf of(?: the)?\W', re.IGNORECASE)
 
     bibrec_id = bfo.control_field("001")
     authors = []
@@ -235,7 +237,14 @@ def format_element(bfo, limit, separator='; ',
         colls = []
     if colls:
         short_coll = False
-        colls = [re_coll.sub('', coll) for coll in colls]
+        if len(colls) > 1:
+            colls = [re_coll.sub('', coll) for coll in colls]
+        else:
+            if colls[0].lower().startswith('collaboration'):
+                colls[0] = re_coll.sub('', colls[0]).strip()
+            if colls[0].startswith('for the '):
+                colls[0] = colls[0].replace('for the ', '')
+        colls = [re_behalf_of.sub('', coll) for coll in colls]
         if print_links.lower() == "yes":
             colls = ['<a class="authorlink" href="' +
                      CFG_BASE_URL + '/search' +
@@ -244,23 +253,24 @@ def format_element(bfo, limit, separator='; ',
                      '">'+escape(coll)+'</a>' for coll in colls]
 
         coll_display = " and ".join(colls)
-        if not coll_display.endswith("aboration"):
+        re.compile('(?:collaborations?|groups?(:?</a>)?)$')
+        if not re_group_or_coll.search(coll_display):
             coll_display += " Collaboration"
-            if len(colls) > 1:
-                coll_display += 's'
+        if len(colls) > 1 and not coll_display.endswith('s'):
+            coll_display += 's'
         if nb_authors > 1:
             if markup == 'latex':
                 coll_display = authors[0] + extension + "  [" + \
                                coll_display + "]"
             elif interactive == "yes":
-                coll_display += " ("  + authors[0] + " "
+                coll_display += " (%s " % (authors[0])
                 extension += ")"
             else:  #html
-                coll_display += " (" + authors[0] + extension + ")"
+                coll_display += " (%s%s)" % (authors[0], extension)
         elif nb_authors == 1:
             short_coll = True
             if markup == 'latex':
-                coll_display = authors[0] + " [" + coll_display + "]"
+                coll_display = "%s [%s]" % (authors[0], coll_display)
             else:  #html
                 if not only_corporate_author:
                     coll_display += " (" + authors[0] + " for the collaboration)"
