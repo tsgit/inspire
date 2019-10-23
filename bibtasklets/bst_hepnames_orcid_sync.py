@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 ##
 ## This file is part of INSPIRE.
-## Copyright (C) 2015 CERN.
+## Copyright (C) 2015, 2019 CERN.
 ##
 ## INSPIRE is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as
@@ -49,6 +49,13 @@ def bst_hepnames_orcid_sync():
             not_matched_profiles += 1
         else:
             recid = recids[0]
+            orecs = perform_request_search(p="035__a:%s" % orcid, cc="HepNames")
+            if len(orecs) == 1 and orecs[0] != recid:
+                write_message("WARNING: record for ORCID in Hepnames %s doesn't match record for BAI %s" % (orecs[0], recid))
+                continue
+            elif len(orecs) > 1:
+                write_message("WARNING: multiple HepNames records with same ORCID %s" % orecs)
+                continue
             record = get_record(recid)
             for field in record_get_field_instances(record, tag="035"):
                 subfields = field_get_subfield_instances(field)
