@@ -289,7 +289,7 @@ class Template(DefaultTemplate):
                  css_class=''),)
             search_on_labs = """
                 <td colspan="2" class="searchboxbody" align="right">
-                  <input class="betalink" formtarget="inspirebetasearch" type="submit" name="searchlabs" value="Search on INSPIRE beta" /></td>
+                  <span class="tooltip"><input class="betalink" formtarget="inspirebetasearch" type="submit" name="searchlabs" value="Search on INSPIRE beta" /><span class="tooltiptext">explore the new INSPIRE beta search</span></span></td>
             """
         # print commentary start:
         if collection_id == "Jobs":
