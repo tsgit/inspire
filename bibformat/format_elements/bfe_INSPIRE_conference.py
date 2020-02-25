@@ -3,7 +3,7 @@
 ## $Id$
 ##
 ## This file is part of Invenio.
-## Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2018 CERN.
+## Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2018, 2020 CERN.
 ##
 ## Invenio is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License as
@@ -20,7 +20,8 @@
 ## 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 """BibFormat element - Prints HTML link to talk
 """
-__revision__ = "$Id$"
+
+from invenio.config import CFG_LABS_HOSTNAME
 
 
 def format_element(bfo, separator=', ', link="yes"):
@@ -44,10 +45,12 @@ def format_element(bfo, separator=', ', link="yes"):
             search_result = perform_request_search(p="111__g:" + cnum, c="Conferences")
             if search_result:
                 recID = list(search_result)[0]
-                conf_name = '<a class="conflink" href = "/record/' +\
+                conf_name = '<a class="conflink" href="/record/' +\
                             str(recID) + '">' + cnum + '</a>'
             else:
-                conf_name = cnum
+                conf_name = '<a class=conflink" ' +\
+                'href="https://%s/conferences?start_date=all&q=cnum%%3A%%22%s%%22">%s</a>' % \
+                (CFG_LABS_HOSTNAME, cnum, cnum)
             if conf.get('t'):
                 note += conf['t'] + ' Conference: ' + conf_name
             else:
